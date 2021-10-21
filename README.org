@@ -8,9 +8,9 @@ Implementation proposals for registry.k8s.io
 Kubernetes release artifacts are currently stored in [[https://k8s.gcr.io][k8s.gcr.io]] and [[https://storage.googleapis.com/kubernetes-release][gs://kubernetes-release]].
 Distributions in the ecosystem tend to pull from these artifacts and images.
 
-ii set up [[https://github.com/kubernetes/k8s.io/tree/main/images/public-log-asn-matcher][a pipeline]] for processing the logs (PII) from the Kubernetes public /GCS/ buckets, which shows the traffic overtime.
+ii set up [[https://github.com/kubernetes/k8s.io/tree/main/images/public-log-asn-matcher][a pipeline]] for processing the [PII] logs from the Kubernetes public /GCS/ buckets, which shows the traffic overtime.
 Pulling in this data and ASN data from multiple providers, the fields of source IP can be matched all the way to company name.
-With this limited access data, some members of [[https://github.com/kubernetes/community/tree/master/sig-k8s-infra][sig-k8s-infra]] are then able to engage in conversion with various credit providers.
+With this limited access data, some members of [[https://github.com/kubernetes/community/tree/master/sig-k8s-infra][sig-k8s-infra]] are then able to engage in conversation with various credit providers.
 
 To ensure funding is spent well and high spenders share the load of traffic,
 a solution for distributing the traffic to other credit providers is required.

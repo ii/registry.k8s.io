@@ -23,7 +23,7 @@ the request will be redirected with a status code of 302 to the given credit pro
 The process described will save on artifact distribution costs and help the Kubernetes project spend better.
 
 * Proposals
-- [[./artifactserver/README.org][ArtifactServer]] :: existing k8s infra project, adapted for cofiguring and 302 redirecting; supports unified artifacts and registry redirection
+- [[./artifactserver/README.org][ArtifactServer]] :: existing k8s infra project, adapted for configuring and 302 redirecting; supports unified artifacts and registry redirection
 - [[./envoy-lua-go/README.org][Envoy-Lua-Go]] :: earlier implementation using Envoy's HTTP Lua filter and an /external/ backend;
 - [[./envoy-wasm/README.org][Envoy-WASM]] :: implementation using Envoy's HTTP WASM filter + WASM filter written in Go
 - [[./nginx-njs/README.org][NGINX-njs]] :: implementation using NGINX's njs (JavaScript embedded functions)

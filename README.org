@@ -10,13 +10,11 @@ Distributions in the ecosystem tend to pull from these artifacts and images.
 
 ii set up [[https://github.com/kubernetes/k8s.io/tree/main/images/public-log-asn-matcher][a pipeline]] for processing the [PII] logs from the Kubernetes public /GCS/ buckets, which shows the traffic overtime.
 Pulling in this data and ASN data from multiple providers, the fields of source IP can be matched all the way to company name.
-With this limited access data, some members of [[https://github.com/kubernetes/community/tree/master/sig-k8s-infra][sig-k8s-infra]] are then able to engage in conversation with various credit providers.
+With this limited data access, members of [[https://github.com/kubernetes/community/tree/master/sig-k8s-infra][sig-k8s-infra]] are then able to engage in informed conversation with various credit providers.
 
-To ensure funding is spent well and high spenders share the load of traffic,
-a solution for distributing the traffic to other credit providers is required.
-
-In this repo, there's basic skeletions of redirection solutions.
-These solutions will redirect to a different container registry based on source IP.
+To ensure funding is well-spent and high spenders share the load of traffic, distributing traffic to other credit providers is required.
+One solution would be to redirect to different container registries based on source IP.
+This repo contains several, rough implementations of this solution.
 
 Once a solution is chosen, it will be fully-fedged out to support redirection based on a mapping of source IP => IP block => ASN => credit provider.
 If a request is made from registry.k8s.io inside a credit provider's infrastructure and the credit provider is included in a redirection policy,

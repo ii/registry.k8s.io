@@ -5,7 +5,7 @@ Implementation proposals for registry.k8s.io
 #+end_quote
 
 * Background + Purpose
-Kubernetes release artifacts are currently stored in [[https://k8s.gcr.io][k8s.gcr.io]] and /gs://kubernetes-release/ aka [[https://storage.googleapis.com/kubernetes-release][storage.googleapis.com/kubernetes-release]].
+Kubernetes release artifacts are currently stored in [[https://k8s.gcr.io][k8s.gcr.io]] and [[https://storage.googleapis.com/kubernetes-release][gs://kubernetes-release]].
 Distributions in the ecosystem tend to pull from these artifacts and images.
 
 ii set up [[https://github.com/kubernetes/k8s.io/tree/main/images/public-log-asn-matcher][a pipeline]] for processing the logs (PII) from the Kubernetes public /GCS/ buckets, which shows the traffic overtime.

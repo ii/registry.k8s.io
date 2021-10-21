@@ -17,10 +17,10 @@ One solution would be to redirect to different container registries based on sou
 This repo contains several, rough implementations of this solution.
 
 Once a solution is chosen, it will be fully-fedged out to support redirection based on a mapping of source IP => IP block => ASN => credit provider.
-If a request is made from registry.k8s.io inside a credit provider's infrastructure and the credit provider is included in a redirection policy,
+If a request is made from /registry.k8s.io/ inside a credit provider's infrastructure and the credit provider is included in a redirection policy,
 the request will be redirected with a status code of 302 to the given credit provider.
 
-The process described will save on artifact distribution costs and help the Kubernetes project to spend better.
+The process described will save on artifact distribution costs and help the Kubernetes project spend better.
 
 * Proposals
 - [[./artifactserver/README.org][ArtifactServer]] :: existing k8s infra project, adapted for cofiguring and 302 redirecting; supports unified artifacts and registry redirection

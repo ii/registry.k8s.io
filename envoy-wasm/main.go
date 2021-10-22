@@ -1,4 +1,4 @@
-// The code
+// the code
 
 package main
 
@@ -11,20 +11,21 @@ import (
 )
 
 const (
-	realIPKey    = "x-real-ip"
-	matchIPKey   = "MATCH_IP"
-	locationKey  = "location"
-	authorityKey = ":authority"
-	statusKey    = ":status"
-	pathKey      = ":path"
-	statusCode   = 302
-	defaultHost  = "k8s.gcr.io"
-	rewriteHost  = "registry-1.docker.io"
+	realIPKey       = "x-real-ip"
+	matchIPEnvKey   = "MATCH_IP"
+	authorityEnvKey = "AUTHORITY"
+	locationKey     = "location"
+	authorityKey    = ":authority"
+	statusKey       = ":status"
+	pathKey         = ":path"
+	statusCode      = 302
+	defaultHost     = "k8s.gcr.io"
+	rewriteHost     = "registry-1.docker.io"
 )
 
 var (
-	authority = os.Getenv("AUTHORITY")
-	matchIP   = os.Getenv(matchIPKey)
+	authority = os.Getenv(authorityEnvKey)
+	matchIP   = os.Getenv(matchIPEnvKey)
 )
 
 func main() {

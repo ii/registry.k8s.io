@@ -270,7 +270,7 @@ metadata:
   namespace: k8s-reg-envoy-lua-go
 spec:
   rules:
-  - host: envoy.${SHARINGIO_PAIR_BASE_DNS_NAME}
+  - host: k8s-reg-envoy-lua-go.${SHARINGIO_PAIR_BASE_DNS_NAME}
     http:
       paths:
       - backend:

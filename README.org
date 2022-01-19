@@ -28,6 +28,113 @@ The process described will save on artifact distribution costs and help the Kube
 - [[./envoy-wasm/README.org][Envoy-WASM]] :: implementation using Envoy's HTTP WASM filter + WASM filter written in Go
 - [[./nginx-njs/README.org][NGINX-njs]] :: implementation using NGINX's njs (JavaScript embedded functions)
 
+* TODO Matching on ASN -> IP range
+ASNs will be cached in memory, retrieved from the repo.
+
+ASNs will be resolved into IP ranges using ???
+- a go-bgp package
+  - https://github.com/osrg/gobgp
+  - something new for querying
+- a database with auto-populated data
+- a repo
+
+Vendor ASN data is located in [[https://github.com/kubernetes/k8s.io/tree/main/registry.k8s.io/infra/meta/asns][k8s.io/registry.k8s.io/infra/meta/asns]].
+The YAML is formatted as
+#+begin_src yaml
+name: a-cool-name
+redirectsTo:
+  registry: registry.a-cool.site
+  artifacts: artifacts.a-cool.site
+asns:
+  - 0
+  - 0
+  - 0
+  - 0
+#+end_src
+or as go structs
+#+begin_src go
+type RedirectSource struct {
+	Registry  string `json:"registry"`
+	Artifacts string `json:"artifacts"`
+}
+type CreditProvider struct {
+	Name        string         `json:"name"`
+	RedirectsTo RedirectSource `json:"redirectsTo"`
+	ASNs        []int          `json:"asns"`
+}
+#+end_src
+More fields might include
+- on call (email, name)
+- active / inactive
+
+All of the ASN data from each provider will be pre-resolved into credit provider -> IP ranges =map[string][]string=.
+
+IP ranges will match IP addresses using something like this
+#+begin_src go
+package main
+
+import (
+	"fmt"
+	"log"
+	"net"
+)
+
+func main() {
+	cidrFromASN := "10.10.10.0/24"
+	matchingIPString := "10.10.10.1"
+	matchingIP := net.ParseIP(matchingIPString)
+	nonMatchingIPString := "10.10.9.3"
+	nonMatchingIP := net.ParseIP(nonMatchingIPString)
+
+	_, cidrRange, err := net.ParseCIDR(cidrFromASN)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%s contains %s? %v\n", cidrRange, matchingIP, cidrRange.Contains(matchingIP))
+	fmt.Printf("%s contains %s? %v\n", cidrRange, nonMatchingIP, cidrRange.Contains(nonMatchingIP))
+}
+#+end_src
+
+#+RESULTS:
+#+begin_SRC example
+10.10.10.0/24 contains 10.10.10.1? true
+10.10.10.0/24 contains 10.10.9.3? false
+#+end_SRC
+
+Each request that comes in will have a source IP, through the RequestIP field or a /X-Real-Ip/ like header.
+
+If there is a match on the IP range, then the credit provider's specified registy/artifact host will be used for the 302 redirect.
+
+A later optimisation could be to remember each unique IP that matches to a credit provider's ASN cidr range,
+then using a quickly mapped struct for redirecting.
+
+Some pseudo-go code for this operation
+#+begin_src go
+// periodic precomputation of ASN to IP range here
+// ...
+
+// handle rewrite
+func RedirectOperation(r *http.Request, w http.ResponseWriter) {
+	sourceIP := r.RequestIP
+	xRealIP := r.Headers.Get("X-Real-Ip")
+	if xRealIp != "" {
+		sourceIP = xRealIP
+	}
+	var rewriteProvider provider = findGoogleProvider()
+	for _, p := range providers {
+		for _, cidr := range p.Cidrs {
+			if cidr.Contains(sourceIP) {
+				rewriteProvider = p
+			}
+		}
+	}
+	w.Headers.Set("location", rewriteProvider.RedirectTo.Registry)
+	w.StatusCode = 302
+	w.Send()
+}
+#+end_src
+
 * Notes
 The solutions docs detailed above are set out to deploy easily on a [[https://pair.sharing.io][Pair instance]].
 To deploy elsewhere, the images will need to be pushed to a registry and the manifests modified to point to another host.

@@ -140,6 +140,16 @@ func RedirectOperation(r *http.Request, w http.ResponseWriter) {
 }
 #+end_src
 
+Extra production-y things
+- tests
+- prometheus instrumentation
+- opentelemetry instrumentation
+
+This way of writing things can be applied to
+- [[./artifactserver/README.org][ArtifactServer]],
+- [[./envoy-lua-go/README.org][Envoy-Lua-Go]], and preferably
+- [[./envoy-wasm/README.org][Envoy-WASM]]
+
 * Notes
 The solutions docs detailed above are set out to deploy easily on a [[https://pair.sharing.io][Pair instance]].
 To deploy elsewhere, the images will need to be pushed to a registry and the manifests modified to point to another host.

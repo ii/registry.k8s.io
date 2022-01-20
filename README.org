@@ -117,6 +117,9 @@ Some pseudo-go code for this operation
 // periodic precomputation of ASN to IP range here
 // ...
 
+// handle caching
+// ...
+
 // handle rewrite
 func RedirectOperation(r *http.Request, w http.ResponseWriter) {
     sourceIP := r.RemoteAddr
@@ -124,12 +127,22 @@ func RedirectOperation(r *http.Request, w http.ResponseWriter) {
     if xRealIp != "" {
         sourceIP = xRealIP
     }
-    var rewriteProvider CreditProvider = findGoogleProvider()
-    for _, p := range providers {
-        for _, cidr := range p.CIDRs {
-            if cidr.Contains(sourceIP) {
-                rewriteProvider = p
+    var defaultProvider CreditProvider = findGoogleProvider()
+    var rewriteProvider CreditProvider = defaultProvider
+    cachedProvider, err := getFromCache(r)
+    if err != nil {
+        fmt.Println(err)
+    } else if cachedProvider == nil {
+        for _, p := range providers {
+            for _, cidr := range p.CIDRs {
+                if cidr.Contains(sourceIP) {
+                    rewriteProvider = p
+                }
             }
+        }
+        if rewriteProvider != defaultProvider {
+            err = cacheRewrite(r, rewriteProvider)
+            fmt.Println("Error:", err)
         }
     }
     path := r.Header.Get("path")

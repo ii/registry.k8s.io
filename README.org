@@ -29,15 +29,6 @@ The process described will save on artifact distribution costs and help the Kube
 - [[./nginx-njs/README.org][NGINX-njs]] :: implementation using NGINX's njs (JavaScript embedded functions)
 
 * TODO Matching on ASN -> IP range
-ASNs will be cached in memory, retrieved from the repo.
-
-ASNs will be resolved into IP ranges using ???
-- a go-bgp package
-  - https://github.com/osrg/gobgp
-  - something new for querying
-- a database with auto-populated data
-- a repo
-
 Vendor ASN data is located in [[https://github.com/kubernetes/k8s.io/tree/main/registry.k8s.io/infra/meta/asns][k8s.io/registry.k8s.io/infra/meta/asns]].
 The YAML is formatted as
 #+begin_src yaml
@@ -61,11 +52,23 @@ type CreditProvider struct {
 	Name        string         `json:"name"`
 	RedirectsTo RedirectSource `json:"redirectsTo"`
 	ASNs        []int          `json:"asns"`
+	CIDRs       []*net.IPNet   `json:"-"`
 }
 #+end_src
 More fields might include
 - on call (email, name)
 - active / inactive
+
+ASNs will be cached in memory, retrieved from the repo
+- [[https://pkg.go.dev/github.com/coreos/etcd/embed][etcd embedded]]
+- [[https://github.com/hashicorp/go-memdb][go-memdb]]
+
+ASNs will be resolved into IP ranges using ???
+- a go-bgp package
+  - https://github.com/osrg/gobgp
+  - something new for querying
+- a database with auto-populated data
+- a repo
 
 All of the ASN data from each provider will be pre-resolved into credit provider -> IP ranges =map[string][]string=.
 
@@ -74,25 +77,25 @@ IP ranges will match IP addresses using something like this
 package main
 
 import (
-	"fmt"
-	"log"
-	"net"
+    "fmt"
+    "log"
+    "net"
 )
 
 func main() {
-	cidrFromASN := "10.10.10.0/24"
-	matchingIPString := "10.10.10.1"
-	matchingIP := net.ParseIP(matchingIPString)
-	nonMatchingIPString := "10.10.9.3"
-	nonMatchingIP := net.ParseIP(nonMatchingIPString)
+    cidrFromASN := "10.10.10.0/24"
+    matchingIPString := "10.10.10.1"
+    matchingIP := net.ParseIP(matchingIPString)
+    nonMatchingIPString := "10.10.9.3"
+    nonMatchingIP := net.ParseIP(nonMatchingIPString)
 
-	_, cidrRange, err := net.ParseCIDR(cidrFromASN)
-	if err != nil {
-		log.Fatal(err)
-	}
+    _, cidrRange, err := net.ParseCIDR(cidrFromASN)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	fmt.Printf("%s contains %s? %v\n", cidrRange, matchingIP, cidrRange.Contains(matchingIP))
-	fmt.Printf("%s contains %s? %v\n", cidrRange, nonMatchingIP, cidrRange.Contains(nonMatchingIP))
+    fmt.Printf("%s contains %s? %v\n", cidrRange, matchingIP, cidrRange.Contains(matchingIP))
+    fmt.Printf("%s contains %s? %v\n", cidrRange, nonMatchingIP, cidrRange.Contains(nonMatchingIP))
 }
 #+end_src
 
@@ -116,22 +119,24 @@ Some pseudo-go code for this operation
 
 // handle rewrite
 func RedirectOperation(r *http.Request, w http.ResponseWriter) {
-	sourceIP := r.RequestIP
-	xRealIP := r.Headers.Get("X-Real-Ip")
-	if xRealIp != "" {
-		sourceIP = xRealIP
-	}
-	var rewriteProvider provider = findGoogleProvider()
-	for _, p := range providers {
-		for _, cidr := range p.Cidrs {
-			if cidr.Contains(sourceIP) {
-				rewriteProvider = p
-			}
-		}
-	}
-	w.Headers.Set("location", rewriteProvider.RedirectTo.Registry)
-	w.StatusCode = 302
-	w.Send()
+    sourceIP := r.RemoteAddr
+    xRealIP := r.Header.Get("X-Real-Ip")
+    if xRealIp != "" {
+        sourceIP = xRealIP
+    }
+    var rewriteProvider CreditProvider = findGoogleProvider()
+    for _, p := range providers {
+        for _, cidr := range p.CIDRs {
+            if cidr.Contains(sourceIP) {
+                rewriteProvider = p
+            }
+        }
+    }
+    path := r.Header.Get("path")
+    location := "https://" + rewriteProvider.RedirectTo.Registry + path
+    w.Header.Set("location", rewriteProvider.RedirectTo.Registry)
+    w.WriteHeader(302)
+    w.Write([]byte(``))
 }
 #+end_src
 

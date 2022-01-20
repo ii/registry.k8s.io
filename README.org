@@ -124,7 +124,7 @@ Some pseudo-go code for this operation
 func RedirectOperation(r *http.Request, w http.ResponseWriter) {
     sourceIP := r.RemoteAddr
     xRealIP := r.Header.Get("X-Real-Ip")
-    if xRealIp != "" {
+    if net.ParseIP(xRealIp) != nil {
         sourceIP = xRealIP
     }
     var defaultProvider CreditProvider = findGoogleProvider()
@@ -144,6 +144,8 @@ func RedirectOperation(r *http.Request, w http.ResponseWriter) {
             err = cacheRewrite(r, rewriteProvider)
             fmt.Println("Error:", err)
         }
+    } else {
+        rewriteProvider = cachedProvider
     }
     path := r.Header.Get("path")
     location := "https://" + rewriteProvider.RedirectTo.Registry + path

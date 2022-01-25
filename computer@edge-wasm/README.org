@@ -1,0 +1,62 @@
+#+TITLE: Compute@Edge WASM
+
+* Prequisites
+Install Viceroy
+#+begin_src shell :results silent
+cd $(mktmp -d)
+curl -L -O https://github.com/fastly/Viceroy/releases/download/v0.2.9/viceroy_v0.2.9_linux-amd64.tar.gz
+tar xvf viceroy*.tar.gz
+rm viceroy*.tar.gz
+mv viceroy /usr/local/bin
+#+end_src
+
+Install fastly cli
+#+begin_src shell :results silent
+go install github.com/fastly/cli/cmd/fastly@latest
+#+end_src
+
+Install fastlike
+#+begin_src shell :results silent
+go install fastlike.dev/...@latest
+#+end_src
+
+* Init
+#+begin_src shell :results silent
+go mod init compute-at-edge-wasm
+#+end_src
+
+#+begin_src tmate :window compute@edge-wasm
+fastly compute init compute@edge-wasm
+#+end_src
+
+* Code
+#+begin_src go :tangle ./main.go
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	fmt.Println("Hello")
+}
+#+end_src
+
+* Prepare
+#+begin_src shell :results silent
+go mod tidy
+#+end_src
+
+* Build WASM
+#+begin_src tmate :window compute@edge-wasm :prologue "docker run --rm --user $(id -u):$(id -g) --tmpfs /.cache --tmpfs /go -v $(pwd):$(pwd) --workdir=$(pwd) tinygo/tinygo:0.20.0 \\"
+tinygo build -o wasm.wasm -scheduler=none -target=wasi .
+#+end_src
+
+#+begin_src tmate :window compute@edge-wasm
+fastly compute build
+#+end_src
+
+* Run WASM
+#+begin_src tmate :window compute@edge-wasm
+fastlike -wasm ./wasm.wasm -proxy-to 0.0.0.0
+#+end_src
